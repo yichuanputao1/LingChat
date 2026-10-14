@@ -136,6 +136,7 @@
                     :id="field.key"
                     v-model="fieldModel(field).value"
                     class="form-control rounded-xl border border-white/10 bg-black/20 px-3.5 py-2.5 text-sm text-white transition-all duration-200 outline-none"
+                    @change="onSelectChange(field, $event)"
                   >
                     <option
                       v-for="opt in resolveFieldOptions(field)"
@@ -555,6 +556,8 @@ interface FieldSchema {
   options?: FieldOption[];
   // Dynamic options computed from refs/state. Overrides options when set.
   dynamicOptions?: () => { label: string; value: string }[];
+  // Side effect after the value changes (e.g. auto-filling dependent fields).
+  onChange?: (value: string, settings: any) => void;
   // One-line explainer rendered under the control (switch fields especially need it)
   hint?: string;
   visibleIf?: (settings: any) => boolean;
@@ -569,6 +572,12 @@ const resolveFieldOptions = (field: FieldSchema) => {
     ? field.dynamicOptions()
     : (field.options ?? []);
   return options.filter((option) => !option.visibleIf || option.visibleIf(localSettings.value));
+};
+
+// 下拉项变更后的副作用钩子（v-model 已先写入值，这里只做联动）。
+const onSelectChange = (field: FieldSchema, event: Event) => {
+  const value = (event.target as HTMLSelectElement).value;
+  field.onChange?.(value, localSettings.value);
 };
 
 // 主对话/桌宠形象共用的两个选项。value 是落盘的协议值（settings.yml 的
@@ -981,6 +990,7 @@ const schemas = computed<Record<string, FieldSchema[]>>(() => ({
       label: t("settings.characterInfo.fields.sherpaOnnxModelName"),
       type: "select",
       isVoiceModel: true,
+      onChange: (value) => applySherpaModelDefaults(value),
       dynamicOptions: () =>
         installedSherpaModels.value.length === 0
           ? [{ label: t("settings.characterInfo.fields.noSherpaModel"), value: "" }]
@@ -1078,6 +1088,17 @@ const ensureVoiceModels = () => {
     localSettings.value.voice_models = {};
   }
   return localSettings.value.voice_models as Record<string, unknown>;
+};
+
+// 选中 Sherpa 模型后带出它的类型/语言/音色。模型类型是模型自身的属性
+// （如 Kokoro 必须用 kokoro），留着默认的 vits 会导致按错误类型加载。
+const applySherpaModelDefaults = (modelId: string) => {
+  const model = installedSherpaModels.value.find((m) => m.id === modelId);
+  if (!model) return;
+  const voiceModels = ensureVoiceModels();
+  if (model.model_type) voiceModels.sherpa_onnx_model_type = model.model_type;
+  if (model.language) voiceModels.sherpa_onnx_lang = model.language;
+  if (model.voice) voiceModels.sherpa_onnx_voice = model.voice;
 };
 
 const migrateLegacyVoiceModelFields = () => {
