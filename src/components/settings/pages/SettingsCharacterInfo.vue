@@ -408,6 +408,7 @@ async function discardDraft() {
   }
 }
 const installedVoices = ref<TtsLocal.VoiceRecord[]>([]);
+const installedSherpaModels = ref<TtsLocal.SherpaOnnxModelRecord[]>([]);
 const cloudVoices = ref<TtsCosyvoice.CosyVoiceView[]>([]);
 
 // 删除按钮可用性：系统保护角色 / 在场角色不可删
@@ -479,6 +480,15 @@ async function refreshLocalVoices(): Promise<void> {
   }
 }
 
+async function refreshSherpaModels(): Promise<void> {
+  try {
+    installedSherpaModels.value = await TtsLocal.listSherpaModels();
+  } catch (error) {
+    console.warn("refreshSherpaModels failed", error);
+    installedSherpaModels.value = [];
+  }
+}
+
 async function refreshCloudVoices(): Promise<void> {
   try {
     cloudVoices.value = await TtsCosyvoice.listVoices();
@@ -515,6 +525,14 @@ const voiceModelKeys = [
   "opentts_voice",
   "fish_s2_voice",
   "cosyvoice_voice_id",
+  "sherpa_onnx_model_name",
+  "sherpa_onnx_model_type",
+  "sherpa_onnx_lang",
+  "sherpa_onnx_voice",
+  "sherpa_onnx_use_gpu",
+  "sherpa_onnx_speed",
+  "sherpa_onnx_ref_audio_path",
+  "sherpa_onnx_ref_text",
 ] as const;
 
 // --- Schema Definition ---
@@ -679,6 +697,7 @@ const schemas = computed<Record<string, FieldSchema[]>>(() => ({
         { label: t("settings.characterInfo.fields.localSbv2Api"), value: "localsbv2api" },
         { label: "indextts2", value: "indextts2" },
         { label: t("settings.characterInfo.fields.voiceCloneTts"), value: "cosyvoice" },
+        { label: t("settings.characterInfo.fields.sherpaOnnx"), value: "sherpa-onnx" },
       ],
     },
 
@@ -955,6 +974,87 @@ const schemas = computed<Record<string, FieldSchema[]>>(() => ({
       placeholder: t("settings.characterInfo.fields.openttsVoicePlaceholder"),
       visibleIf: (s) => s.tts_type === "opentts",
     },
+
+    // --- Sherpa-ONNX 本地模型 ---
+    {
+      key: "sherpa_onnx_model_name",
+      label: t("settings.characterInfo.fields.sherpaOnnxModelName"),
+      type: "select",
+      isVoiceModel: true,
+      dynamicOptions: () =>
+        installedSherpaModels.value.length === 0
+          ? [{ label: t("settings.characterInfo.fields.noSherpaModel"), value: "" }]
+          : installedSherpaModels.value.map((model) => ({
+              label: model.display_name || model.id,
+              value: model.id,
+            })),
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_model_type",
+      label: t("settings.characterInfo.fields.sherpaOnnxModelType"),
+      type: "select",
+      isVoiceModel: true,
+      options: [
+        { label: "vits", value: "vits" },
+        { label: "fastspeech2", value: "fastspeech2" },
+        { label: "matcha", value: "matcha" },
+        { label: "kokoro", value: "kokoro" },
+        { label: "kitten", value: "kitten" },
+        { label: "zipvoice", value: "zipvoice" },
+        { label: "pocket", value: "pocket" },
+        { label: "supertonic", value: "supertonic" },
+      ],
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_lang",
+      label: t("settings.characterInfo.fields.sherpaOnnxLanguage"),
+      type: "select",
+      isVoiceModel: true,
+      options: [
+        { label: t("settings.characterInfo.voiceLangOptions.zh"), value: "zh" },
+        { label: t("settings.characterInfo.voiceLangOptions.en"), value: "en" },
+        { label: t("settings.characterInfo.voiceLangOptions.ja"), value: "ja" },
+      ],
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_voice",
+      label: t("settings.characterInfo.fields.sherpaOnnxVoice"),
+      type: "text",
+      isVoiceModel: true,
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_use_gpu",
+      label: t("settings.characterInfo.fields.sherpaOnnxUseGpu"),
+      type: "switch",
+      isVoiceModel: true,
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_speed",
+      label: t("settings.characterInfo.fields.sherpaOnnxSpeed"),
+      type: "number",
+      step: "0.05",
+      isVoiceModel: true,
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_ref_audio_path",
+      label: t("settings.sherpa.refPick"),
+      type: "text",
+      isVoiceModel: true,
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
+    {
+      key: "sherpa_onnx_ref_text",
+      label: t("settings.sherpa.refText"),
+      type: "text",
+      isVoiceModel: true,
+      visibleIf: (s) => s.tts_type === "sherpa-onnx",
+    },
   ],
 }));
 
@@ -1101,6 +1201,10 @@ watch(
       // 本地 TTS 音色:仅 localsbv2api 需要
       if (ttsType === "localsbv2api") {
         void refreshLocalVoices();
+      }
+      // Sherpa-ONNX 本地模型下拉:仅 sherpa-onnx 需要
+      if (ttsType === "sherpa-onnx") {
+        void refreshSherpaModels();
       }
       // 云端音色:cosyvoice 下拉随时需要（与 tts_type 无关）
       void refreshCloudVoices();
