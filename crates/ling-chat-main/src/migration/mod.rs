@@ -13,6 +13,14 @@ impl MigratorTrait for Migrator {
             Box::new(m20260807_000001_add_skill_agent_reasoning::Migration),
             Box::new(m20260814_000001_add_skill_agent_token_usage::Migration),
             Box::new(m20260815_000001_add_skill_agent_cached_tokens::Migration),
+            // 以下三条来自 memory 分支：本分支（sherpa-onnx）不实现记忆功能，
+            // 但它们必须留在迁移列表里——`sea_orm_migration` 遇到「数据库已应用、
+            // 但迁移文件不存在」的记录会直接报错，memory 分支建的库因此无法被
+            // 本构建打开（启动即崩）。保留文件即可让两边互相兼容；DDL 全部幂等
+            // （IF NOT EXISTS / DROP IF EXISTS），在别的库上执行无害。
+            Box::new(m20261007_000001_create_memory_embeddings::Migration),
+            Box::new(m20261009_000001_create_memory_archive::Migration),
+            Box::new(m20261010_000001_fix_memory_table_names::Migration),
         ]
     }
 }
@@ -24,3 +32,6 @@ pub mod m20260803_000001_create_skill_agent_tables;
 pub mod m20260807_000001_add_skill_agent_reasoning;
 pub mod m20260814_000001_add_skill_agent_token_usage;
 pub mod m20260815_000001_add_skill_agent_cached_tokens;
+pub mod m20261007_000001_create_memory_embeddings;
+pub mod m20261009_000001_create_memory_archive;
+pub mod m20261010_000001_fix_memory_table_names;
