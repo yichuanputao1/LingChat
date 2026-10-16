@@ -14,14 +14,14 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0(vite@6.4.2(@types/node@25.7.0)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0))
       "@tauri-apps/api":
-        specifier: ^2
-        version: 2.11.0
+        specifier: ^2.12.4
+        version: 2.12.4
       "@tauri-apps/plugin-dialog":
         specifier: ^2.7.2
         version: 2.7.2
       "@tauri-apps/plugin-fs":
-        specifier: ^2.5.1
-        version: 2.5.1
+        specifier: ^2.7.1
+        version: 2.7.1
       "@tauri-apps/plugin-notification":
         specifier: ^2
         version: 2.4.0
@@ -1277,10 +1277,10 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  "@tauri-apps/api@2.11.0":
+  "@tauri-apps/api@2.12.4":
     resolution:
       {
-        integrity: sha512-7CinYODhky9lmO23xHnUFv0Xt43fbtWMyxZcLcRBlFkcgXKuEirBvHpmtJ89YMhyeGcq20Wuc47Fa4XjyniywA==,
+        integrity: sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==,
       }
 
   "@tauri-apps/cli-darwin-arm64@2.11.1":
@@ -1401,10 +1401,10 @@ packages:
         integrity: sha512-pX0IGm1I3I6wc+zeKYcq1GSqogK6okCNX5fOdaNU5ab1AjGS6l1E5wFNjEb7meg7ZFSp0JUs+0jQGQNyOvLrsg==,
       }
 
-  "@tauri-apps/plugin-fs@2.5.1":
+  "@tauri-apps/plugin-fs@2.7.1":
     resolution:
       {
-        integrity: sha512-9Lz+Jopp6QyeEWhlpkMx4R/+P9HgR+AVAI4vOZhlT8Xaymtz8iVI/Ov984/XTqgJz/5gz5NretqPB/XEMS3NhQ==,
+        integrity: sha512-4TBVjpi/q8PuNzjpkAc2iBGXMTLjOrAyfTiiOL8ORaJCZJRG3tjzmQ4sqs2CMG75FvLyRkOkERfP7AyY4iBNwQ==,
       }
 
   "@tauri-apps/plugin-notification@2.4.0":
@@ -1660,6 +1660,7 @@ packages:
         integrity: sha512-T4EDRUBVZYRldYApjEJiU0e1stYWaRAX7CuSnKzrpwdZKo53zGV8/pqfzV6FfwNl9YThD2OumQYvqtvjvgG7aQ==,
       }
     engines: { node: ">=10.0.0" }
+    deprecated: this version has critical issues, please update to the latest version
 
   acorn@8.16.0:
     resolution:
@@ -3577,7 +3578,7 @@ snapshots:
       tailwindcss: 4.3.0
       vite: 6.4.2(@types/node@25.7.0)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0)
 
-  "@tauri-apps/api@2.11.0": {}
+  "@tauri-apps/api@2.12.4": {}
 
   "@tauri-apps/cli-darwin-arm64@2.11.1":
     optional: true
@@ -3628,27 +3629,27 @@ snapshots:
 
   "@tauri-apps/plugin-dialog@2.7.2":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
-  "@tauri-apps/plugin-fs@2.5.1":
+  "@tauri-apps/plugin-fs@2.7.1":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   "@tauri-apps/plugin-notification@2.4.0":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   "@tauri-apps/plugin-opener@2.5.4":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   "@tauri-apps/plugin-process@2.3.1":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   "@tauri-apps/plugin-updater@2.10.1":
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   "@types/css-font-loading-module@0.0.12": {}
 
@@ -4391,7 +4392,7 @@ snapshots:
 
   tauri-plugin-screenshots-api@file:src-tauri/plugins/tauri-plugin-screenshots:
     dependencies:
-      "@tauri-apps/api": 2.11.0
+      "@tauri-apps/api": 2.12.4
 
   tiny-lru@11.4.7: {}
 
