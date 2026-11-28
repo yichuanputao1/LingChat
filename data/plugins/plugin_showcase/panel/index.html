@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>示例面板</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --fg: rgba(255, 255, 255, 0.86);
+        --dim: rgba(255, 255, 255, 0.48);
+        --line: rgba(255, 255, 255, 0.1);
+        --accent: #8ab4ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 14px 16px 20px;
+        background: transparent;
+        color: var(--fg);
+        font:
+          13px/1.6 "Noto Sans SC",
+          system-ui,
+          sans-serif;
+      }
+      h2 {
+        margin: 18px 0 8px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--dim);
+      }
+      h2:first-of-type {
+        margin-top: 0;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .row + .row {
+        margin-top: 6px;
+      }
+      .key {
+        flex: none;
+        width: 68px;
+        color: var(--dim);
+      }
+      .value {
+        min-width: 0;
+        word-break: break-word;
+      }
+      .badge {
+        display: inline-block;
+        margin-right: 6px;
+        padding: 0 6px;
+        border-radius: 6px;
+        background: rgba(138, 180, 255, 0.16);
+        color: var(--accent);
+        font-size: 11px;
+      }
+      .role {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .role + .role {
+        margin-top: 6px;
+      }
+      .role .name {
+        font-weight: 600;
+      }
+      .role .meta {
+        margin-left: auto;
+        color: var(--dim);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .line {
+        padding: 6px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .line:last-child {
+        border-bottom: none;
+      }
+      .line .who {
+        color: var(--accent);
+        font-size: 11px;
+      }
+      .empty {
+        color: var(--dim);
+      }
+    </style>
+  </head>
+  <body>
+    <h2>当前状态</h2>
+    <div class="row"><span class="key">玩家</span><span class="value" id="player">—</span></div>
+    <div class="row"><span class="key">状态</span><span class="value" id="status">—</span></div>
+    <div class="row"><span class="key">场景</span><span class="value" id="scene">—</span></div>
+    <div class="row"><span class="key">自动</span><span class="value" id="auto">—</span></div>
+
+    <h2>在场角色</h2>
+    <div id="roles" class="empty">等待宿主推送状态…</div>
+
+    <h2>最近台词</h2>
+    <div id="lines" class="empty">—</div>
+
+    <script>
+      // 面板是 sandbox iframe，拿不到 Pinia / Tauri IPC，只能收宿主推来的快照
+      let state = null;
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type !== "lingchat:panel:state") return;
+        state = event.data.state;
+        render();
+      });
+
+      // 页面自己加载完时主动要一份，避免错过宿主在 iframe load 时发的那次
+      window.parent.postMessage({ type: "lingchat:panel:request-state" }, "*");
+
+      const text = (id, value) => {
+        document.getElementById(id).textContent = value ?? "—";
+      };
+
+      function render() {
+        if (!state) return;
+        text("player", state.player?.name);
+        text("status", state.status);
+        text("scene", state.scene?.name ?? "无");
+        text("auto", state.autoMode ? "开" : "关");
+
+        const roles = document.getElementById("roles");
+        roles.replaceChildren();
+        roles.className = "";
+        const list = (state.roles ?? []).filter((role) => role.present);
+        if (list.length === 0) {
+          roles.className = "empty";
+          roles.textContent = "暂无角色在场";
+        }
+        for (const role of list) {
+          const row = document.createElement("div");
+          row.className = "role";
+
+          const name = document.createElement("span");
+          name.className = "name";
+          name.textContent = role.name;
+
+          const emotion = document.createElement("span");
+          emotion.className = "badge";
+          emotion.textContent = role.emotion || "平静";
+
+          const meta = document.createElement("span");
+          meta.className = "meta";
+          const fondness = role.affection?.fondness;
+          meta.textContent = fondness == null ? "好感 —" : `好感 ${Math.round(fondness)}`;
+
+          row.append(name, emotion, meta);
+          roles.append(row);
+        }
+
+        const lines = document.getElementById("lines");
+        lines.replaceChildren();
+        const recent = (state.recentLines ?? []).slice(-6);
+        if (recent.length === 0) {
+          lines.className = "empty";
+          lines.textContent = "还没有台词";
+        } else {
+          lines.className = "";
+        }
+        for (const line of recent) {
+          const row = document.createElement("div");
+          row.className = "line";
+
+          const who = document.createElement("div");
+          who.className = "who";
+          who.textContent = line.name;
+
+          const content = document.createElement("div");
+          content.textContent = line.content;
+
+          row.append(who, content);
+          lines.append(row);
+        }
+      }
+    </script>
+  </body>
+</html>
